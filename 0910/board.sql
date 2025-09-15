@@ -37,8 +37,8 @@ CREATE TABLE REPLY(
 );
 COMMIT;
 
-INSERT INTO reply(bcode, reply, writer) VALUES(1, '저도 안녕', 'sunshin');
-INSERT INTO reply(bcode, reply, writer) VALUES(1, '잘 지내고 계시죠?', 'sunyoung');
+INSERT INTO reply(bcode, reply, writer) VALUES(1, ' 안녕하세요', 'sunshin');
+INSERT INTO reply(bcode, reply, writer) VALUES(1, '잘 있으시죠?', 'sunyoung');
 
 SELECT * FROM board;
 SELECT * FROM reply;

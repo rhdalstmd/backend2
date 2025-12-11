@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? 'To-Do 수정' : 'To-Do 작성'">To-Do 작성</title>
+    
+    <style>
+        /* ========================================
+           전역 스타일
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* ========================================
+           헤더
+           ======================================== */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+        }
+
+        /* ========================================
+           메인 콘텐츠
+           ======================================== */
+        main {
+            padding: 30px;
+        }
+
+        /* ========================================
+           폼 스타일
+           ======================================== */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 200px;
+            font-family: inherit;
+        }
+
+        /* ========================================
+           에러 메시지
+           ======================================== */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .form-group.has-error input,
+        .form-group.has-error textarea {
+            border-color: #dc3545;
+        }
+
+        /* ========================================
+           버튼 그룹
+           ======================================== */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* ========================================
+           필수 입력 표시
+           ======================================== */
+        .required {
+            color: #dc3545;
+        }
+
+        /* ========================================
+           푸터
+           ======================================== */
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header>
+            <h1 th:text="${isEdit} ? '✏️ To-Do 수정' : '✏️ To-Do 작성'">To-Do 작성</h1>
+        </header>
+
+        <!-- 메인 콘텐츠 -->
+        <main>
+            <!-- 폼 -->
+            <form th:action="${isEdit} ? @{/todos/{id}(id=${todoId})} : @{/todos}" 
+                  method="post" 
+                  th:object="${todoRequest}">
+                
+                <!-- 제목 입력 -->
+                <div class="form-group" th:classappend="${#fields.hasErrors('title')} ? 'has-error' : ''">
+                    <label for="title">제목 <span class="required">*</span></label>
+                    <input type="text" 
+                           id="title" 
+                           th:field="*{title}" 
+                           placeholder="제목을 입력하세요 (최대 200자)"
+                           maxlength="200"
+                           required>
+                    <div class="error-message" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                </div>
+
+                <!-- 내용 입력 -->
+                <div class="form-group" th:classappend="${#fields.hasErrors('content')} ? 'has-error' : ''">
+                    <label for="content">내용 <span class="required">*</span></label>
+                    <textarea id="content" 
+                              th:field="*{content}" 
+                              placeholder="내용을 입력하세요"
+                              required></textarea>
+                    <div class="error-message" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+                </div>
+
+                <!-- 작성자 입력 -->
+                <div class="form-group" th:classappend="${#fields.hasErrors('author')} ? 'has-error' : ''">
+                    <label for="author">작성자 <span class="required">*</span></label>
+                    <input type="text" 
+                           id="author" 
+                           th:field="*{author}" 
+                           placeholder="작성자 이름을 입력하세요 (최대 50자)"
+                           maxlength="50"
+                           th:readonly="${isEdit}"
+                           required>
+                    <div class="error-message" th:if="${#fields.hasErrors('author')}" th:errors="*{author}"></div>
+                </div>
+
+                <!-- 버튼 그룹 -->
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary" th:text="${isEdit} ? '💾 수정하기' : '✏️ 작성하기'">작성하기</button>
+                    <a th:href="${isEdit} ? @{/todos/{id}(id=${todoId})} : @{/todos}" class="btn btn-secondary">취소</a>
+                </div>
+            </form>
+        </main>
+
+        <!-- 푸터 -->
+        <footer>
+            <p>&copy; 2024 To-Do Board. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * ========================================
+         * 폼 유효성 검사
+         * ========================================
+         */
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const author = document.getElementById('author').value.trim();
+
+            // 빈 값 체크
+            if (!title || !content || !author) {
+                alert('모든 필수 항목을 입력해주세요.');
+                e.preventDefault();
+                return false;
+            }
+
+            // 제목 길이 체크
+            if (title.length > 200) {
+                alert('제목은 200자 이내로 입력해주세요.');
+                e.preventDefault();
+                return false;
+            }
+
+            // 작성자 길이 체크
+            if (author.length > 50) {
+                alert('작성자는 50자 이내로 입력해주세요.');
+                e.preventDefault();
+                return false;
+            }
+
+            return true;
+        });
+
+        /**
+         * ========================================
+         * 입력 필드 실시간 피드백
+         * ========================================
+         */
+        document.getElementById('title').addEventListener('input', function() {
+            const length = this.value.length;
+            const maxLength = 200;
+            
+            // 길이 초과 시 경고
+            if (length > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+            }
+        });
+    </script>
+</body>
+</html>

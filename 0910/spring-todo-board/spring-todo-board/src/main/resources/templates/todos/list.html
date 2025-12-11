@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do 목록</title>
+    
+    <style>
+        /* ========================================
+           전역 스타일
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* ========================================
+           헤더
+           ======================================== */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        /* ========================================
+           메인 콘텐츠
+           ======================================== */
+        main {
+            padding: 30px;
+        }
+
+        /* ========================================
+           검색 및 필터 영역
+           ======================================== */
+        .search-filter-area {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ========================================
+           버튼 스타일
+           ======================================== */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-outline.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* ========================================
+           게시글 카드
+           ======================================== */
+        .todo-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .todo-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .todo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .todo-card.completed {
+            background: #f0f8f0;
+            border-color: #28a745;
+        }
+
+        .todo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .todo-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .todo-card.completed .todo-title {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .todo-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .todo-content {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            /* 내용 미리보기 (3줄까지만 표시) */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .todo-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #999;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .todo-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ========================================
+           페이징
+           ======================================== */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination .active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* ========================================
+           알림 메시지
+           ======================================== */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========================================
+           빈 상태
+           ======================================== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        /* ========================================
+           푸터
+           ======================================== */
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header>
+            <h1>📝 To-Do 게시판</h1>
+        </header>
+
+        <!-- 메인 콘텐츠 -->
+        <main>
+            <!-- 성공 메시지 -->
+            <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+            <!-- 검색 및 필터 영역 -->
+            <div class="search-filter-area">
+                <!-- 검색 폼 -->
+                <form class="search-form" th:action="@{/todos}" method="get">
+                    <input type="text" 
+                           name="keyword" 
+                           th:value="${keyword}" 
+                           placeholder="제목 또는 내용으로 검색...">
+                    <button type="submit" class="btn btn-primary">🔍 검색</button>
+                    <a th:href="@{/todos/new}" class="btn btn-primary">✏️ 새 글 작성</a>
+                </form>
+
+                <!-- 필터 버튼 -->
+                <div class="filter-buttons">
+                    <a th:href="@{/todos}" 
+                       th:classappend="${completed == null} ? 'active' : ''"
+                       class="btn btn-outline">전체</a>
+                    <a th:href="@{/todos(completed=false)}" 
+                       th:classappend="${completed != null && !completed} ? 'active' : ''"
+                       class="btn btn-outline">미완료</a>
+                    <a th:href="@{/todos(completed=true)}" 
+                       th:classappend="${completed != null && completed} ? 'active' : ''"
+                       class="btn btn-outline">완료</a>
+                </div>
+            </div>
+
+            <!-- 게시글 목록 -->
+            <div class="todo-list" th:if="${!todoPage.isEmpty()}">
+                <!-- 각 게시글 카드 -->
+                <div th:each="todo : ${todoPage.content}" 
+                     th:classappend="${todo.completed} ? 'completed' : ''"
+                     class="todo-card"
+                     th:onclick="'location.href=\'/todos/' + ${todo.id} + '\''">
+                    
+                    <div class="todo-header">
+                        <div>
+                            <h2 class="todo-title" th:text="${todo.title}">제목</h2>
+                        </div>
+                        <span th:classappend="${todo.completed} ? 'status-completed' : 'status-pending'"
+                              class="todo-status"
+                              th:text="${todo.completed} ? '✓ 완료' : '⏳ 진행중'">상태</span>
+                    </div>
+
+                    <p class="todo-content" th:text="${todo.content}">내용</p>
+
+                    <div class="todo-meta">
+                        <span>👤 <span th:text="${todo.author}">작성자</span></span>
+                        <span>👁️ <span th:text="${todo.viewCount}">0</span></span>
+                        <span>💬 <span th:text="${todo.commentCount}">0</span></span>
+                        <span>📅 <span th:text="${#temporals.format(todo.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 빈 상태 -->
+            <div th:if="${todoPage.isEmpty()}" class="empty-state">
+                <h3>📭 게시글이 없습니다</h3>
+                <p>첫 번째 To-Do를 작성해보세요!</p>
+            </div>
+
+            <!-- 페이징 -->
+            <div th:if="${!todoPage.isEmpty()}" class="pagination">
+                <!-- 이전 페이지 -->
+                <a th:if="${todoPage.hasPrevious()}" 
+                   th:href="@{/todos(page=${todoPage.number - 1}, size=${todoPage.size}, keyword=${keyword}, completed=${completed})}"
+                   class="btn btn-secondary">◀ 이전</a>
+                <span th:unless="${todoPage.hasPrevious()}" class="btn disabled">◀ 이전</span>
+
+                <!-- 페이지 번호 -->
+                <span class="active" th:text="${todoPage.number + 1} + ' / ' + ${todoPage.totalPages}">1 / 1</span>
+
+                <!-- 다음 페이지 -->
+                <a th:if="${todoPage.hasNext()}" 
+                   th:href="@{/todos(page=${todoPage.number + 1}, size=${todoPage.size}, keyword=${keyword}, completed=${completed})}"
+                   class="btn btn-secondary">다음 ▶</a>
+                <span th:unless="${todoPage.hasNext()}" class="btn disabled">다음 ▶</span>
+            </div>
+        </main>
+
+        <!-- 푸터 -->
+        <footer>
+            <p>&copy; 2024 To-Do Board. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
